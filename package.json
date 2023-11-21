@@ -1,0 +1,39 @@
+{
+  "name": "dariusbot",
+  "version": "1.0.0",
+  "description": "Bot feito por um mono darius aí da paraiba.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index.js",
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "yLexter#1687",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/builders": "^1.1.0",
+    "@discordjs/opus": "^0.8.0",
+    "@discordjs/rest": "^1.0.1",
+    "@discordjs/voice": "^0.11.0",
+    "@iamtraction/google-translate": "^1.1.2",
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.0.1",
+    "ffmpeg": "^0.0.4",
+    "fluent-ffmpeg": "^2.1.2",
+    "isomorphic-unfetch": "^3.1.0",
+    "lyrics-finder": "^21.7.0",
+    "moment-timezone": "^0.5.40",
+    "moongose": "^1.0.0",
+    "play-dl": "^1.9.7",
+    "spotify-url-info": "^3.1.10",
+    "tweetnacl": "^1.0.3",
+    "youtube-sr": "^4.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  },
+  "engines": {
+    "node": "16.13.0"
+  }
+}
