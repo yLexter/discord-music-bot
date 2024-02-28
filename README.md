@@ -2,6 +2,8 @@
 
 O MusicBot é um bot de música poderoso para Discord que oferece uma variedade de comandos para melhorar sua experiência musical. Abaixo estão os comandos organizados por categorias para facilitar a navegação.
 
+[![Video Youtube](https://img.youtube.com/vi/0q7R3m-a8mQ/0.jpg)](https://www.youtube.com/watch?v=0q7R3m-a8mQ)
+
 ## Música
 
 - **!clear**
