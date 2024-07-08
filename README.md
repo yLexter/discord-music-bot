@@ -1,85 +1,85 @@
-# Comandos do MusicBot
+# MusicBot
 
-O MusicBot é um bot de música poderoso para Discord que oferece uma variedade de comandos para melhorar sua experiência musical. Abaixo estão os comandos organizados por categorias para facilitar a navegação.
+MusicBot is a powerful music bot for Discord that offers a variety of commands to improve your music experience. Below are the commands organized by categories for easy navigation.
 
 [![Video Youtube](https://img.youtube.com/vi/0q7R3m-a8mQ/0.jpg)](https://www.youtube.com/watch?v=0q7R3m-a8mQ)
 
-## Música
+## MusicBot Commands
 
 - **!clear**
-  - Limpa todas as músicas da fila.
+ - Clears all songs in the queue.
 
 - **!customplaylist**
-  - Personaliza sua própria playlist.
+ - Customize your own playlist.
 
 - **!loop**
-  - Opções de loop.
+ - Loop options.
 
 - **!lyrics**
-  - Mostra a letra de uma música.
+ - Shows the lyrics of a song.
 
 - **!move**
-  - Move uma música para uma posição específica na fila.
+ - Moves a song to a specific position in the queue.
 
 - **!nowplaying**
-  - Exibe a música atualmente em reprodução.
+ - Displays the song currently playing.
 
 - **!pause**
-  - Pausa a música atual.
+ - Pause the current song.
 
 - **!play**
-  - Toca uma música desejada.
+ - Play a desired song.
 
-- **!promisse**
-  - Coloca uma música na 1° posição da fila.
+- **!promise**
+ - Place a song in the 1st position in the queue.
 
 - **!queue**
-  - Mostra todas as músicas da fila.
+ - Shows all songs in the queue.
 
 - **!randomqueue**
-  - Ativa/Desativa o modo que toca músicas aleatórias da fila.
+ - Activate/Deactivate the mode that plays random songs from the queue.
 
 - **!remove**
-  - Remove uma música da fila.
+ - Remove a song from the queue.
 
 - **!resume**
-  - Retorna a reprodução da música atual.
+ - Returns playback of the current song.
 
 - **!searchyt**
-  - Procura uma música no YouTube.
+ - Search for a song on YouTube.
 
 - **!seek**
-  - Coloca a música na minutagem desejada.
+ - Set the music to the desired tempo.
 
 - **!shuffle**
-  - Embaralha a fila atual.
+ - Shuffles the current queue.
 
 - **!skip**
-  - Pula para a próxima música.
+ - Skip to the next song.
 
 - **!skipto**
-  - Pula para uma música desejada na fila.
+ - Skip to a desired song in the queue.
 
 - **!stop**
-  - Para a reprodução da fila atual.
+ - Stops playing the current queue.
 
-## Proprietário (Owner)
+## Owner
 
 - **!eval**
-  - Executa comandos como caller.
+ - Executes commands as caller.
 
 - **!getsongs**
-  - Backup dos arquivos de músicas.
+ - Backup of music files.
 
 - **!botinfo**
-  - Informações sobre o bot da host.
+ - Information about the host bot.
 
-## Administração
+## Administration
 
 - **!fixqueue**
-  - Conserta a fila atual caso esteja bugada.
+ - Fixes the current queue if it is bugged.
 
-## Geral
+## General
 
-- **!tradutor**
-- Traduz um texto para a linguagem desejada.
+- **!a translator**
+- Translates a text into the desired language.
