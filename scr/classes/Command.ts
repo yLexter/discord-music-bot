@@ -1,4 +1,4 @@
-import { EmbedBuilder } from "discord.js";
+import { CommandInteraction, EmbedBuilder } from "discord.js";
 import Base from "./Base";
 
 class Command extends Base {
@@ -17,24 +17,30 @@ class Command extends Base {
     this.cor = options.cor || "RANDOM";
   }
 
-  notQueue(interaction: any) {
+  notQueue(interaction: CommandInteraction) {
     const embed = new EmbedBuilder()
       .setColor("Red")
       .setDescription(`❌ Não existe uma queue ativa no servidor`);
 
     if (interaction.deferred)
-      return interaction.editReply({ embeds: [embed], ephemeral: true });
+      return interaction.editReply({
+        embeds: [embed],
+        //  ephemeral: true
+      });
 
     return interaction.reply({ embeds: [embed], ephemeral: true });
   }
 
-  sucessMessage(interaction: any, message: string) {
+  sucessMessage(interaction: CommandInteraction, message: string) {
     const embed = new EmbedBuilder()
       .setDescription(`✅ ${message}`)
       .setColor("Green");
 
     if (interaction.deferred)
-      return interaction.editReply({ embeds: [embed], ephemeral: true });
+      return interaction.editReply({
+        embeds: [embed],
+        // ephemeral: true
+      });
 
     return interaction.reply({ embeds: [embed], ephemeral: true });
   }
