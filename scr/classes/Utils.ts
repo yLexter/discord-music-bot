@@ -66,7 +66,19 @@ export class Utils {
   }
 
   static formatDate(date: any): string {
-    return String(moment(date).tz("America/Sao_Paulo").format("LLLL"));
+    const saoPauloTime = new Date(date).toLocaleString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      second: "numeric",
+      hour12: true,
+    });
+
+    return saoPauloTime;
   }
 
   static formattedSongTitle(string: string): string {

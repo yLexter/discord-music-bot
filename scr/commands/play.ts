@@ -27,8 +27,8 @@ export default class PlayCommand extends Command {
     const query = interaction.options.getString("search", true);
     try {
       await interaction.deferReply();
-      if (!interaction.member.voice.channel)
-        throw new Error("Você precisa entrar em um canal de voz primeiro.");
+      //if (!interaction.member.voice.channel)
+      //  throw new Error("Você precisa entrar em um canal de voz primeiro.");
       const queue =
         (client.queues.get(interaction.guild!.id) as Queue | undefined) ||
         new Queue(client, interaction);

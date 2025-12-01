@@ -13,6 +13,6 @@
     "outDir": "dist",
     "rootDir": "."
   },
-  "include": ["scr/**/*.ts", "scr/**/*.js", "index.js"],
+  "include": ["scr/**/*.ts", "scr/**/*.js", "index.ts", "index.js"],
   "exclude": ["node_modules", "dist"]
 }

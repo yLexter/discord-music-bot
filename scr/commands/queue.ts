@@ -32,13 +32,13 @@ export default class QueueCommand extends Command {
     const member = interaction.member as GuildMember;
     if (!member.voice.channelId)
       throw new Error("Você precisa estar em um canal de voz.");
-    if (!queue?.voiceChannelId)
-      throw new Error("Erro ao identificar o canal de música.");
+    // if (!queue?.voiceChannelId)
+    //   throw new Error("Erro ao identificar o canal de música.");
     const page = interaction.options.getInteger("page") || 1;
-    const embedPagination =
-      queue.paginationSongs.get(page) ?? queue.paginationSongs.get(1);
-    if (!embedPagination)
-      throw new Error("Erro ao localizar embed de paginação.");
+    const embedPagination = {} as any;
+    // queue.paginationSongs.get(page) ?? queue.paginationSongs.get(1);
+    //if (!embedPagination)
+    //  throw new Error("Erro ao localizar embed de paginação.");
     await interaction.reply({
       embeds: [embedPagination.getEmbed()],
       components: [embedPagination.getButtons()],

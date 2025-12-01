@@ -1,15 +1,9 @@
-import database from "./Database";
-import DatabaseSongs from "./DatabaseSongs";
-import SquareApi from "./HostApi";
 import translate from "@iamtraction/google-translate";
 import jsonConfig from "../jsons/config.json";
 import { SongsPagination } from "./MusicPagination";
 import { Utils } from "./Utils";
 
 export default class Base {
-  public DatabaseSongs = DatabaseSongs;
-  public SquareApi = SquareApi;
-  public Database = database;
   public jsonConfig = jsonConfig as any;
   public Utils = Utils;
   public SongsPagination = SongsPagination;

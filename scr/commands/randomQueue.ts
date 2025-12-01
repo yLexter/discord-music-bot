@@ -24,9 +24,10 @@ export default class RandomQueueCommand extends Command {
     if (queue.songs.length <= 2)
       throw new Error("Quantidade insuficiente de músicas para randomização");
     const originalLength = queue.songs.length - 1;
-    queue.songs = [queue.songs[0]].concat(
-      queue.songs.slice(1).shuffle()
-    ) as any; // first stays
+    queue.songs = [queue.songs[0]]
+      .concat
+      // queue.songs.slice(1).shuffle()
+      () as any; // first stays
     if (originalLength !== queue.songs.length - 1)
       throw new Error("Erro ao randomizar a fila");
     await interaction.reply({ content: "Queue embaralhada com sucesso." });

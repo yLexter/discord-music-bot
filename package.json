@@ -2,12 +2,11 @@
   "name": "dariusbot",
   "version": "1.0.0",
   "description": "Bot feito por um mono darius aí da paraiba.",
-  "main": "index.js",
-  "type": "module",
+  "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon index.js",
-    "start": "node index.js"
+    "build": "tsc",
+    "start": "npm run build && node dist/index.js"
   },
   "keywords": [],
   "author": "yLexter#1687",

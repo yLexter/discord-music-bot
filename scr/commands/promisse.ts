@@ -1,7 +1,6 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import Command from "../classes/Command";
-import Client from "../classes/Client";
 import Queue from "../classes/Queue";
 import { songType } from "../enums";
 import CustomClient from "../classes/Client";
@@ -57,7 +56,7 @@ export default class PromisseCommand extends Command {
       search: async () => {
         const query = interaction.options.getString("psearch", true);
         if (
-          (query.isUrlYoutubePlaylist && query.isUrlYoutubePlaylist()) ||
+          // (query.isUrlYoutubePlaylist && query.isUrlYoutubePlaylist()) ||
           queue.songs.length <= 1
         ) {
           const embed = new EmbedBuilder()
@@ -86,7 +85,10 @@ export default class PromisseCommand extends Command {
               name: "| ❌ Prováveis Erros: ",
               iconURL: interaction.user.displayAvatarURL(),
             });
-          await interaction.editReply({ embeds: [embed], ephemeral: true });
+          await interaction.editReply({
+            embeds: [embed],
+            // ephemeral: true
+          });
           return;
         }
         const songData = await Queue.songSearch(query);
@@ -123,7 +125,7 @@ export default class PromisseCommand extends Command {
     title: string,
     url: string,
     duration: string,
-    color: string
+    color: number
   ) {
     const embed = new EmbedBuilder()
       .setColor(color)
