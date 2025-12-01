@@ -1,5 +1,5 @@
 import { EmbedBuilder } from "discord.js";
-const Base = require("./Base");
+import Base from "./Base";
 
 class Command extends Base {
   public name: string;
@@ -40,4 +40,4 @@ class Command extends Base {
   }
 }
 
-export = Command;
+export default Command;

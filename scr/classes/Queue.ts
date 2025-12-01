@@ -1,9 +1,17 @@
-import { EmbedBuilder } from "discord.js";
+import {
+  APIInteractionGuildMember,
+  Colors,
+  CommandInteraction,
+  EmbedBuilder,
+  Guild,
+  GuildMember,
+  GuildTextBasedChannel,
+  User,
+} from "discord.js";
 import YouTubeLib from "youtube-sr";
 
-const YouTube = YouTubeLib || (YouTubeLib as any);
-const { Song, Playlist, SpotifySong, SpotifyPlaylist } = require("./Songs");
-const { secondsToText } = require("./Utils");
+const YouTube = (YouTubeLib as any).default || (YouTubeLib as any);
+import { Song, Playlist, SpotifySong, SpotifyPlaylist } from "./Songs";
 import {
   AudioPlayerStatus,
   NoSubscriberBehavior,
@@ -13,40 +21,43 @@ import {
   getVoiceConnection,
 } from "@discordjs/voice";
 
-const { queueComponents } = require("../enums/index");
+import { queueComponents } from "../enums/index";
 const play = require("play-dl");
 const fetch = require("isomorphic-unfetch");
 const { getData } = require("spotify-url-info")(fetch);
-const DatabaseSongs = require("./DatabaseSongs");
-const { songType } = require("../enums/index");
+import DatabaseSongs from "./DatabaseSongs";
+import { songType } from "../enums/index";
+import CustomClient from "./Client";
+import { Utils } from "./Utils";
 
-class Queue {
-  member: any;
-  guild: any;
-  user: any;
-  client: any;
-  channel: any;
-  songs: any[] = [];
+export default class Queue {
+  player: any;
+  member: GuildMember | APIInteractionGuildMember;
+  guild: Guild;
+  user: User;
+  client: CustomClient;
+  channel: GuildTextBasedChannel;
+  songs: Song[] = [];
   loopingSong = false;
-  loopingQueue: any[] | false = false;
-  back: any = null;
-  songPlay: number | null = null;
+  loopingQueue: Song[] | false = false;
+  back: Song = null;
+  cor = Colors.Purple;
   message: any = null;
-  cor = "#4B0082";
+  songPlay: number | null = null;
   minimumToUse = 3;
   statusLoop = 0;
   delayButton = 1;
   lastClickButton = 0;
   amountPerPage = 10;
   randomQueue = false;
-  player: any;
 
-  constructor(client: any, interaction: any) {
+  constructor(client: CustomClient, interaction: CommandInteraction) {
+    this.client = client;
     this.member = interaction.member;
     this.guild = interaction.guild;
     this.user = interaction.user;
-    this.client = client;
     this.channel = interaction.channel;
+    this.message = interaction;
     this.player = this.getPlayer();
     this.setQueue();
     this.setListeners();
@@ -73,9 +84,9 @@ class Queue {
     );
     const emojiPlay = isPaused ? "▶️" : "⏸";
     progressBar.splice(positionProgressBar, 0, emoji);
-    return `${progressBar.join("")}\n${emojiPlay}  ${secondsToText(songTime)}/${
-      song.durationFormatted
-    }`;
+    return `${progressBar.join("")}\n${emojiPlay}  ${Utils.secondsToText(
+      songTime
+    )}/${song.durationFormatted}`;
   }
 
   firstMusic(song: any) {
@@ -223,7 +234,7 @@ class Queue {
     player.removeAllListeners("error");
 
     try {
-      connection?.destroy()?.catch(() => {});
+      connection.destroy();
     } catch {}
     this.message?.edit({ components: [] }).catch(() => {});
     this.channel?.send({ embeds: [embed] }).catch(() => {});
@@ -476,7 +487,7 @@ class Queue {
             title: name,
             url: query,
             duration: durationInMs,
-            durationFormatted: secondsToText(durationInSec),
+            durationFormatted: Utils.secondsToText(durationInSec),
             notSeekable: true,
           });
         },
@@ -488,7 +499,7 @@ class Queue {
               title: name,
               url: query,
               duration: durationInMs,
-              durationFormatted: secondsToText(durationInMs / 1000),
+              durationFormatted: Utils.secondsToText(durationInMs / 1000),
               notSeekable: true,
             });
           });
@@ -585,7 +596,7 @@ class Queue {
             title: title,
             uri: uri,
             duration: msc.duration,
-            durationFormatted: secondsToText(msc.duration / 1000),
+            durationFormatted: Utils.secondsToText(msc.duration / 1000),
           });
 
           await DatabaseSongs.addSong(data.toJSON());
@@ -621,7 +632,7 @@ class Queue {
                 title: title,
                 uri: uri,
                 duration: ytSong.duration,
-                durationFormatted: secondsToText(ytSong.duration / 1000),
+                durationFormatted: Utils.secondsToText(ytSong.duration / 1000),
               });
 
               songsSpotify.push(data);
@@ -748,5 +759,3 @@ class Queue {
     return [components, components2];
   }
 }
-
-export = Queue;

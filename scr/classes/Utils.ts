@@ -1,4 +1,4 @@
-class Utils {
+export class Utils {
   static async textToSeconds(minute: string): Promise<number> {
     const formatar = async (numbers: string) => {
       const numbersArray = numbers.split(":").map((x) => {
@@ -116,5 +116,3 @@ class Utils {
     return Math.floor(hash / number);
   }
 }
-
-export = Utils;

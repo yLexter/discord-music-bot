@@ -1,20 +1,30 @@
-const { queueComponents, geral } = require("../enums");
-import { EmbedBuilder } from "discord.js";
+import { queueComponents } from "../enums";
+import {
+  EmbedBuilder,
+  Guild,
+  User,
+  GuildMember,
+  TextBasedChannel,
+  Message,
+  ButtonInteraction,
+  APIInteractionGuildMember,
+} from "discord.js";
 import { AudioPlayerStatus } from "@discordjs/voice";
-const Base = require("./Base");
+import Base from "./Base";
+import CustomClient from "./Client";
 
-module.exports = class extends Base {
-  interaction: any;
-  client: any;
-  guild: any;
-  channel: any;
-  user: any;
-  message: any;
+export class CustomButtonInteraction extends Base {
   customId: string;
-  member: any;
+  interaction: ButtonInteraction;
+  client: CustomClient;
+  guild: Guild;
+  channel: TextBasedChannel;
+  user: User;
+  message: Message;
+  member: GuildMember | APIInteractionGuildMember;
   queue: any;
 
-  constructor(client: any, interaction: any) {
+  constructor(client: CustomClient, interaction: ButtonInteraction) {
     super();
     this.interaction = interaction;
     this.client = client;
@@ -31,59 +41,10 @@ module.exports = class extends Base {
     const { customId } = this as any;
     const isQueueComponent = Object.values(queueComponents).includes(customId);
 
-    if (isQueueComponent) return this.mainQueueComponents();
-
-    return this.generalInteraction();
+    if (isQueueComponent) this.mainQueueComponents();
   }
 
-  generalInteraction() {
-    const { customId } = this as any;
-
-    switch (customId) {
-      case geral.restartBot:
-        this.restartBot();
-        break;
-      case geral.stopBot:
-        this.stopBot();
-        break;
-      case geral.translateLyrics:
-        this.traslateLyrics();
-        break;
-    }
-  }
-
-  async restartBot() {
-    await this.interaction.update({
-      content: `Reiniciando bot...`,
-      embeds: [],
-      components: [],
-    });
-
-    return this.SquareApi.restartApp();
-  }
-
-  async stopBot() {
-    await this.interaction.update({
-      content: `Parando bot...`,
-      embeds: [],
-      components: [],
-    });
-
-    return this.SquareApi.stopApp();
-  }
-
-  async traslateLyrics() {
-    const embed = this.message.embeds[0];
-    const text =
-      (await this.translateText(embed.description, "pt")) ||
-      "Não foi possivel traduzir o texto";
-
-    embed.description = text;
-
-    this.interaction.update({ embeds: [embed], components: [] });
-  }
-
-  mainQueueComponents() {
+  async mainQueueComponents() {
     const { queue, customId } = this as any;
     const connection = queue?.getConnection();
 
@@ -91,7 +52,7 @@ module.exports = class extends Base {
 
     if (
       queue.player._state.status == AudioPlayerStatus.Idle ||
-      this.member.voice.channel != connection?.joinConfig.channelId ||
+      // this.member.voice.channel != connection?.joinConfig.channelId ||
       queue.buttonOnHold()
     )
       return;
@@ -132,7 +93,7 @@ module.exports = class extends Base {
     queue.setLastClickButton();
   }
 
-  queueRandomQueue(queue: any) {
+  async queueRandomQueue(queue: any) {
     queue.changeStateRandomQueue();
     this.interaction.update({ components: queue.getComponentsMessage() });
   }
@@ -255,4 +216,4 @@ module.exports = class extends Base {
     queue.setMessageNull();
     queue.skip();
   }
-};
+}

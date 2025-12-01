@@ -1,16 +1,18 @@
 const { ownerId } = require("../jsons/config.json");
-
+import { CacheType, CommandInteraction, Interaction } from "discord.js";
+import config from "../jsons/config.json";
 import { AudioPlayerStatus } from "@discordjs/voice";
+import CustomClient from "./Client";
 
 class SlashCommand {
-  client: any;
-  interaction: any;
+  client: CustomClient;
+  interaction: CommandInteraction;
   user: any;
   member: any;
   guild: any;
   channel: any;
 
-  constructor(client: any, interaction: any) {
+  constructor(client: CustomClient, interaction: CommandInteraction) {
     this.client = client;
     this.interaction = interaction;
     this.user = interaction.user;
@@ -109,4 +111,4 @@ class SlashCommand {
   }
 }
 
-export = SlashCommand;
+export default SlashCommand;

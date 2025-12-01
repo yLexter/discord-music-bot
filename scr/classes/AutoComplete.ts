@@ -1,15 +1,23 @@
-const { languages } = require("../jsons/config.json");
+import {
+  APIInteractionGuildMember,
+  AutocompleteInteraction,
+  Guild,
+  GuildMember,
+  GuildTextBasedChannel,
+  User,
+} from "discord.js";
+import CustomClient from "./Client";
 
 class Autocomplete {
-  client: any;
-  interaction: any;
-  user: any;
-  member: any;
+  client: CustomClient;
+  interaction: AutocompleteInteraction;
+  user: User;
+  member: GuildMember | APIInteractionGuildMember;
+  guild: Guild;
+  channel: GuildTextBasedChannel;
   options: any;
-  guild: any;
-  channel: any;
 
-  constructor(client: any, interaction: any) {
+  constructor(client: CustomClient, interaction: AutocompleteInteraction) {
     this.client = client;
     this.interaction = interaction;
     this.user = interaction.user;
@@ -23,9 +31,6 @@ class Autocomplete {
     const { name, value } = this.options.getFocused(true);
 
     switch (name) {
-      case "linguagem":
-        this.translateText(value);
-        break;
       case "songqueue":
         this.songsQueue(value);
         break;
@@ -57,22 +62,6 @@ class Autocomplete {
       }))
     );
   }
-
-  async translateText(value: string) {
-    const arrayLanguages = Object.entries(languages);
-    const filter = arrayLanguages
-      .filter(([abbreviation, languages]: any) =>
-        (languages as string).toLowerCase().includes(value.toLowerCase())
-      )
-      .slice(0, 25);
-
-    await this.interaction.respond(
-      filter.map(([abbreviation, languages]: any) => ({
-        name: languages,
-        value: abbreviation,
-      }))
-    );
-  }
 }
 
-export = Autocomplete;
+export default Autocomplete;

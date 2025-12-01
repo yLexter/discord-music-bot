@@ -10,6 +10,25 @@ export interface ISongOptions {
   notSeekable?: boolean;
 }
 
+export interface IPlaylistOptions {
+  name: string;
+  url?: string;
+  ownerName?: string;
+  ownerUrl?: string;
+  songs: Song[];
+  durationPlaylist: number;
+  images?: string;
+}
+
+interface ISpotifySongOptions extends ISongOptions {
+  uri: string;
+}
+
+export interface ISpotifyPlaylistOptions extends IPlaylistOptions {
+  id: string;
+  color?: string;
+}
+
 export class Song {
   type = songType.track;
   id: string = "??";
@@ -27,16 +46,6 @@ export class Song {
     this.durationFormatted = options.durationFormatted || "??";
     this.notSeekable = options.notSeekable || false;
   }
-}
-
-export interface IPlaylistOptions {
-  name: string;
-  url?: string;
-  ownerName?: string;
-  ownerUrl?: string;
-  songs: Song[];
-  durationPlaylist: number;
-  images?: string;
 }
 
 export class Playlist {
@@ -64,10 +73,6 @@ export class Playlist {
     this.durationInSeconds = options.durationPlaylist / 1000;
     this.images = options?.images;
   }
-}
-
-export interface ISpotifySongOptions extends ISongOptions {
-  uri: string;
 }
 
 export class SpotifySong extends Song {
@@ -110,11 +115,6 @@ export class SpotifySong extends Song {
   }
 }
 
-export interface ISpotifyPlaylistOptions extends IPlaylistOptions {
-  id: string;
-  color?: string;
-}
-
 export class SpotifyPlaylist extends Playlist {
   id: string;
   color?: string;
@@ -131,10 +131,3 @@ export class SpotifyPlaylist extends Playlist {
     return `https://open.spotify.com/playlist/${this.id}`;
   }
 }
-
-module.exports = {
-  Song,
-  Playlist,
-  SpotifySong,
-  SpotifyPlaylist,
-};

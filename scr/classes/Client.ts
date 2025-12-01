@@ -3,16 +3,10 @@ import {
   GatewayIntentBits,
   Collection,
   EmbedBuilder,
-  Channel,
+  Colors,
 } from "discord.js";
-import type {
-  Interaction,
-  Guild,
-  User,
-  GuildMember,
-  TextBasedChannel,
-} from "discord.js";
-const { channelError } = require("../jsons/config.json");
+import channelConfig from "../jsons/config.json";
+const { channelError } = channelConfig as any;
 
 const configClient = {
   intents: [
@@ -26,7 +20,7 @@ class CustomClient extends Client {
   public commands = new Collection<string, any>();
   public cooldown = new Collection<string, number>();
   public queues = new Collection<string, any>();
-  public cor = "#4B0082";
+  public cor = Colors.Red;
   public timeCooldown = 2.5;
 
   constructor() {
@@ -70,4 +64,4 @@ class CustomClient extends Client {
   }
 }
 
-export = CustomClient;
+export default CustomClient;

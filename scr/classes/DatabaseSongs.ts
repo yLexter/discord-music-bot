@@ -1,5 +1,6 @@
 import fs from "fs";
-const { hashCode } = require("./Utils");
+import { Utils } from "./Utils";
+const { hashCode } = Utils;
 
 class DatabaseSongs {
   path: string;
@@ -79,4 +80,4 @@ class DatabaseSongs {
   }
 }
 
-export = new DatabaseSongs();
+export default new DatabaseSongs();

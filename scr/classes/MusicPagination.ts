@@ -1,33 +1,36 @@
-const { secondsToText } = require("./Utils");
 import {
   EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
   ComponentType,
   ButtonStyle,
+  CommandInteraction,
 } from "discord.js";
-const { pagination } = require("../enums/index");
+import { pagination } from "../enums/index";
+import { Utils } from "./Utils";
+import { Song } from "./Songs";
 
-class SongsPagination {
+export class SongsPagination {
   public firstPage = 1;
   public currentPag = 1;
   public oneSecondInMs = 1000;
   public title: string;
-  public hearder?: () => string;
-  public interaction: any;
+  public interaction: CommandInteraction;
   public amountPerPage: number;
   public finishCommand: number;
-  public songs: () => any[];
   public firstSongIsHeader: number;
 
-  constructor(options: any) {
+  public hearder?: () => string;
+  public songs: () => Song[];
+
+  constructor(options) {
     this.title = options.title;
-    this.hearder = options.hearder;
     this.interaction = options.interaction;
     this.amountPerPage = options.amountPerPage || 10;
     this.finishCommand = options.finishCommand || 120;
-    this.songs = options.songs;
     this.firstSongIsHeader = options.firstSongIsHeader ? 1 : 0;
+    this.hearder = options.hearder;
+    this.songs = options.songs;
   }
 
   getTotalPages() {
@@ -41,7 +44,7 @@ class SongsPagination {
   getFormattedDuration() {
     const songs = this.songs();
     const total = songs.reduce((acc, song) => acc + song.duration, 0);
-    return secondsToText(total / this.oneSecondInMs);
+    return Utils.secondsToText(total / this.oneSecondInMs);
   }
 
   getPage(pageNumber: number) {
@@ -124,7 +127,7 @@ class SongsPagination {
 
     interaction
       .editReply({
-        embeds: [this.getEmbed(currentPag)],
+        embeds: [this.getEmbed()],
         components: [this.getComponentsMessage()],
       })
       .catch(() => {});
@@ -137,11 +140,11 @@ class SongsPagination {
   async startPagination() {
     const { finishCommand, interaction, oneSecondInMs } = this;
     const mainMessage = await interaction.editReply({
-      embeds: [this.getEmbed(this.currentPag)],
+      embeds: [this.getEmbed()],
       components: [this.getComponentsMessage()],
     });
 
-    const collector = await mainMessage.createMessageComponentCollector({
+    const collector = mainMessage.createMessageComponentCollector({
       filter: (i: any) => {
         i.deferUpdate();
         return i.user.id == interaction.user.id;
@@ -170,10 +173,8 @@ class SongsPagination {
       buttonFunctions[i.customId]();
     });
 
-    collector.on("end", () =>
-      interaction.editReply({ components: [] }).catch(() => {})
-    );
+    // collector.on("end", () =>
+    //  interaction.editReply({ components: [] }).catch(() => {})
+    // );
   }
 }
-
-export = SongsPagination;
