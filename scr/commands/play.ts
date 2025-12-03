@@ -4,6 +4,7 @@ import Command from "../classes/Command";
 import Client from "../classes/Client";
 import Queue from "../classes/Queue";
 import { songType } from "../enums";
+import { SearchSongs } from "../classes/searchs/SearchSong";
 
 export default class PlayCommand extends Command {
   constructor() {
@@ -25,14 +26,17 @@ export default class PlayCommand extends Command {
 
   async execute(client: Client, interaction: ChatInputCommandInteraction) {
     const query = interaction.options.getString("search", true);
+
     try {
       await interaction.deferReply();
-      //if (!interaction.member.voice.channel)
-      //  throw new Error("Você precisa entrar em um canal de voz primeiro.");
+
       const queue =
-        (client.queues.get(interaction.guild!.id) as Queue | undefined) ||
+        client.queues.get(interaction.guild.id) ||
         new Queue(client, interaction);
-      const data = await Queue.songSearch(query, interaction);
+
+      const searcher = new SearchSongs();
+      const data = await searcher.search(query);
+
       const handlers: Record<string, () => Promise<void>> = {
         [songType.track]: async () => queue.play(data, interaction),
         [songType.playlist]: async () => {

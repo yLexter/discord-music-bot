@@ -6,32 +6,31 @@ import {
   Guild,
   GuildMember,
   GuildTextBasedChannel,
+  InteractionResponse,
+  Message,
   User,
 } from "discord.js";
-import YouTubeLib from "youtube-sr";
 
-const YouTube = (YouTubeLib as any).default || (YouTubeLib as any);
 import { Song, Playlist, SpotifySong, SpotifyPlaylist } from "./Songs";
 import {
+  AudioPlayer,
   AudioPlayerStatus,
   NoSubscriberBehavior,
   createAudioPlayer,
   createAudioResource,
   joinVoiceChannel,
   getVoiceConnection,
+  VoiceConnection,
 } from "@discordjs/voice";
 
 import { queueComponents } from "../enums/index";
-const play = require("play-dl");
-const fetch = require("isomorphic-unfetch");
-const { getData } = require("spotify-url-info")(fetch);
-import DatabaseSongs from "./DatabaseSongs";
-import { songType } from "../enums/index";
 import CustomClient from "./Client";
 import { Utils } from "./Utils";
+import { PlayerSong } from "./player/Player";
 
 export default class Queue {
-  player: any;
+  player: PlayerSong;
+
   member: GuildMember | APIInteractionGuildMember;
   guild: Guild;
   user: User;
@@ -40,9 +39,9 @@ export default class Queue {
   songs: Song[] = [];
   loopingSong = false;
   loopingQueue: Song[] | false = false;
-  back: Song = null;
+  back: Song | null = null;
   cor = Colors.Purple;
-  message: any = null;
+  message: Message | InteractionResponse | null = null;
   songPlay: number | null = null;
   minimumToUse = 3;
   statusLoop = 0;
@@ -58,23 +57,22 @@ export default class Queue {
     this.user = interaction.user;
     this.channel = interaction.channel;
     this.message = interaction;
-    this.player = this.getPlayer();
+    this.player = new PlayerSong();
     this.setQueue();
-    this.setListeners();
   }
 
-  getHeader() {
+  getHeader(): string {
     const { songs } = this;
     return `🔊 **Tocando agora**\n[${songs[0].title}](${
       songs[0].url
     })\n${this.getProgressBar()}`;
   }
 
-  getProgressBar() {
+  getProgressBar(): string {
     const maximumProgessBar = 10;
     const progressBar = [...Array(maximumProgessBar)].map(() => "▬");
     const emoji = "🔵";
-    const isPaused = this.player._state.status == AudioPlayerStatus.Paused;
+    const isPaused = this.player.state.status === AudioPlayerStatus.Paused;
     const song = this.songs[0];
     const songTime = isPaused
       ? Math.floor((this.songPlay || 0) / 1000)
@@ -89,42 +87,46 @@ export default class Queue {
     )}/${song.durationFormatted}`;
   }
 
-  firstMusic(song: any) {
-    if (this.loopingQueue) (this.loopingQueue as any[]).push(song);
+  firstMusic(song: Song): void {
+    if (this.loopingQueue) this.loopingQueue.push(song);
 
     this.songs.splice(1, 0, song);
   }
 
-  async playPlaylist(playlist: any[], interaction: any = null) {
+  async playPlaylist(
+    playlist: Song[],
+    interaction: CommandInteraction | null = null
+  ) {
     if (this.loopingQueue)
-      this.loopingQueue = (this.loopingQueue as any[]).concat(playlist);
+      this.loopingQueue = this.loopingQueue.concat(playlist);
 
     if (this.songs.length) return (this.songs = this.songs.concat(playlist));
 
     this.songs = playlist;
-    this.playSong(playlist[0], interaction);
+
+    await this.playSong(playlist[0], interaction);
   }
 
-  setQueue() {
+  setQueue(): void {
     this.client.queues.set(this.guild.id, this);
   }
 
-  async clear() {
+  async clear(): Promise<void> {
     if (this.songs.length <= 1)
       throw new Error("Só existe uma música na queue!");
 
     this.songs = this.songs.splice(0, 1);
   }
 
-  removeSongLoopingQueue(songRemoved: any) {
+  removeSongLoopingQueue(songRemoved: Song): void {
     if (!this.loopingQueue) return;
 
-    this.loopingQueue = (this.loopingQueue as any[]).filter(
+    this.loopingQueue = this.loopingQueue.filter(
       (song) => song.id != songRemoved.id
     );
   }
 
-  remove(position: number) {
+  remove(position: number): Song {
     const songRemovida = this.songs[position];
 
     if (!songRemovida) throw new Error("A posição informada é invalida");
@@ -135,19 +137,19 @@ export default class Queue {
     return songRemovida;
   }
 
-  setLastClickButton() {
+  setLastClickButton(): void {
     this.lastClickButton = Date.now();
   }
 
-  buttonOnHold() {
+  buttonOnHold(): boolean {
     return Date.now() - this.lastClickButton < this.delayButton * 1000;
   }
 
-  getSongs() {
+  getSongs(): Song[] {
     return this.songs;
   }
 
-  async seek(seconds: number) {
+  async seek(seconds: number): Promise<void> {
     const song = this.songs[0];
 
     if (song.notSeekable)
@@ -156,44 +158,37 @@ export default class Queue {
     if (seconds >= song.duration / 1000)
       throw new Error("Duração maior do que o vídeo.");
 
-    const stream = await play.stream(song.id, { seek: seconds });
-    const resource = createAudioResource(stream.stream, {
-      inputType: stream.type,
-    });
-    const connection = this.getConnection();
-
-    this.player.play(resource);
-    connection.subscribe(this.player);
+    this.player.seek(seconds * 1000);
     this.songPlay = Date.now() - seconds * 1000;
   }
 
-  backMusic() {
+  backMusic(): void {
     this.back = this.songs.shift();
   }
 
-  async playBackMusic() {
+  async playBackMusic(): Promise<Song> {
     const back = this.back;
 
     if (!back) throw new Error("Não existe música para voltar");
 
     this.backMusic();
     this.songs.unshift(back);
-    this.playSong(back);
+    await this.playSong(back);
 
     return back;
   }
 
-  loop() {
+  loop(): boolean {
     return (this.loopingSong = !this.loopingSong);
   }
 
-  loopQueue() {
+  loopQueue(): Song[] | false {
     if (this.loopingQueue) return (this.loopingQueue = false);
 
     return (this.loopingQueue = [...this.songs]);
   }
 
-  move(oldPosition: number, newPosition: number) {
+  move(oldPosition: number, newPosition: number): Song {
     const songMovida = this.songs.splice(oldPosition, 1)[0];
 
     this.songs.splice(newPosition, 0, songMovida);
@@ -201,42 +196,34 @@ export default class Queue {
     return songMovida;
   }
 
-  async pause() {
-    if (this.player._state.status == AudioPlayerStatus.Paused)
-      throw new Error("Música já está pausada.");
-
+  async pause(): Promise<void> {
     this.player.pause();
     this.songPlay = Date.now() - (this.songPlay || 0);
   }
 
-  async resume() {
-    if (this.player._state.status == AudioPlayerStatus.Playing)
-      throw new Error("Música já está tocando.");
-
-    this.player.unpause();
+  async resume(): Promise<void> {
+    this.player.resume();
     this.songPlay = Date.now() - (this.songPlay || 0);
   }
 
-  addStatusLoop() {
+  addStatusLoop(): void {
     this.statusLoop++;
   }
 
-  stop() {
-    const { client, guild, player } = this as any;
+  stop(): void {
     const connection = this.getConnection();
     const embed = new EmbedBuilder().setColor("Red").setAuthor({
       name: " | ⏹️ Stopped Queue.",
-      iconURL: client.user.displayAvatarURL(),
+      iconURL: this.client.user.displayAvatarURL(),
     });
 
-    client.queues.delete(guild.id);
-    player.removeAllListeners(AudioPlayerStatus.Idle);
-    player.removeAllListeners("error");
+    this.client.queues.delete(this.guild.id);
 
     try {
       connection.destroy();
     } catch {}
-    this.message?.edit({ components: [] }).catch(() => {});
+
+    this.message?.edit?.({ components: [] }).catch(() => {});
     this.channel?.send({ embeds: [embed] }).catch(() => {});
   }
 
@@ -250,7 +237,7 @@ export default class Queue {
     this.playSong(this.songs[0]);
   }
 
-  async shuffle() {
+  async shuffle(): Promise<void> {
     const songs = this.getSongs();
 
     if (songs.length <= this.minimumToUse)
@@ -260,7 +247,7 @@ export default class Queue {
 
     const firstMusic = songs.shift();
 
-    (songs as any).shuffle();
+    // songs.shuffle();
     songs.unshift(firstMusic);
   }
 
@@ -279,13 +266,13 @@ export default class Queue {
     return musicSkip;
   }
 
-  resetLoops() {
+  resetLoops(): void {
     this.loopingSong = false;
     this.loopingQueue = false;
   }
 
-  joinChannelVoice() {
-    const { member, guild } = this as any;
+  joinChannelVoice(): VoiceConnection {
+    const { member, guild } = this;
 
     return joinVoiceChannel({
       channelId: member.voice.channel.id,
@@ -294,19 +281,21 @@ export default class Queue {
     });
   }
 
-  play(song: any, interaction?: any) {
+  play(song: Song | Song[], interaction?: CommandInteraction) {
     if (Array.isArray(song))
       return this.playPlaylist(song, interaction || null);
 
-    if (
-      this.loopingQueue &&
-      !(this.loopingQueue as any[]).some((x) => x.id == song.id)
-    )
-      (this.loopingQueue as any[]).push(song);
+    if (this.loopingQueue && this.loopingQueue.some((x) => x.id == song.id)) {
+      this.loopingQueue.push(song);
+    }
 
     if (this.songs.length) {
       this.songs.push(song);
-      const { user, songs, cor } = this as any;
+      const { user, songs, cor } = this as {
+        user: User;
+        songs: Song[];
+        cor: number;
+      };
       const embed = new EmbedBuilder()
         .setColor(cor)
         .setAuthor({
@@ -322,10 +311,10 @@ export default class Queue {
     }
 
     this.songs.push(song);
-    this.playSong(song, interaction || null);
+    void this.playSong(song, interaction || null);
   }
 
-  embedSong(song: any) {
+  embedSong(song: Song): EmbedBuilder {
     return new EmbedBuilder()
       .setColor(this.cor)
       .setDescription(
@@ -337,33 +326,27 @@ export default class Queue {
       });
   }
 
-  getStatusLoop() {
+  getStatusLoop(): number {
     return this.statusLoop % 3;
   }
 
-  getPlayer() {
-    return createAudioPlayer({
-      behaviors: { noSubscriber: NoSubscriberBehavior.Pause },
-    });
-  }
-
-  getConnection() {
+  getConnection(): VoiceConnection | undefined {
     return getVoiceConnection(this.guild.id);
   }
 
-  getDurationTotal() {
+  getDurationTotal(): number {
     return this.songs.reduce((acc, song) => acc + song.duration, 0) / 1000;
   }
 
-  setMessageNull() {
+  setMessageNull(): void {
     this.message = null;
   }
 
-  changeStateRandomQueue() {
+  changeStateRandomQueue(): boolean {
     return (this.randomQueue = !this.randomQueue);
   }
 
-  async playRandomSong() {
+  async playRandomSong(): Promise<void> {
     const songs = this.getSongs();
     const randomNumber = Math.floor(Math.random() * songs.length - 1) + 1;
 
@@ -372,7 +355,7 @@ export default class Queue {
     this.playSong(songs[0]);
   }
 
-  async sendMessage(song: any) {
+  async sendMessage(song: Song): Promise<Message> {
     const embed = this.embedSong(song);
 
     return this.channel.send({
@@ -381,8 +364,8 @@ export default class Queue {
     });
   }
 
-  async sendMessageError(error: string) {
-    const { client } = this as any;
+  async sendMessageError(error: string): Promise<void> {
+    const { client } = this;
     const song = this.songs[0];
 
     if (!song) return;
@@ -398,62 +381,27 @@ export default class Queue {
         `**Música:** [${song.title}](${song.url}) }\n**Motivo:** ${error}`
       );
 
-    return this.channel.send({ embeds: [embed] }).catch(() => {});
+    await this.channel.send({ embeds: [embed] }).catch(() => {});
   }
 
-  setListeners() {
-    this.player.on(AudioPlayerStatus.Idle, async () => {
-      const songs = this.getSongs();
-
-      if (this.loopingSong) return this.playSong(songs[0]);
-
-      if (this.randomQueue && this.songs.length >= this.minimumToUse)
-        return this.playRandomSong();
-
-      this.backMusic();
-      this.playSong(songs[0]);
-    });
-
-    this.player.on("error", async (e: any) => {
-      await this.sendMessageError(e.message);
-      this.stop();
-      console.log(e);
-    });
-  }
-
-  async playSong(song: any, interaction: any = null) {
+  async playSong(song: Song, interaction: CommandInteraction | null = null) {
     try {
       if (!song) return this.stop();
 
-      const { player } = this as any;
-      const connection = this.getConnection() || this.joinChannelVoice();
-      const stream = await play.stream(song.id, {
-        discordPlayerCompatibility: true,
-      });
-      const resource = createAudioResource(stream.stream, {
-        inputType: stream.type,
-      });
-
-      if (this.loopingQueue && this.songs.length == 1) {
-        const filtered = (this.loopingQueue as any[]).filter(
-          (x) => x.id != this.songs[0]?.id
-        );
-        this.songs = this.songs.concat(filtered);
-      }
-
-      player.play(resource);
-      connection.subscribe(player);
+      this.player.play(song);
       this.songPlay = Date.now();
 
       if (interaction) {
-        return (this.message = await interaction.editReply({
+        this.message = await interaction.editReply({
           embeds: [this.embedSong(song)],
-          components: this.getComponentsMessage(),
-          fetchReply: true,
-        }));
+          // components: this.getComponentsMessage(),
+          // fetchReply: true,
+        });
+        return;
       }
 
-      if (this.message) this.message.edit({ components: [] }).catch(() => {});
+      if (this.message && (this.message as any).edit)
+        (this.message as any).edit({ components: [] }).catch(() => {});
 
       this.message = await this.sendMessage(song);
     } catch (e: any) {
@@ -463,221 +411,10 @@ export default class Queue {
     }
   }
 
-  static async songSearch(query: string, interaction?: any) {
-    const isSpotifyUrl = (query as any).isUrlSpotify?.() || false;
-    const isUrlSoundcloud = (query as any).isUrlSoundcloud?.() || false;
-    const isYoutubePlaylist = (query as any).isUrlYoutubePlaylist?.() || false;
-
-    return isSpotifyUrl
-      ? await spotifySearch()
-      : isUrlSoundcloud
-      ? await soundCloudSearch()
-      : isYoutubePlaylist
-      ? await ytPlaylistSearch()
-      : await ytVideoSearch();
-
-    async function soundCloudSearch() {
-      const data = await play.soundcloud(query);
-      const { type, name, url, durationInMs, durationInSec, user } = data;
-
-      const typesData: any = {
-        [songType.track]: () => {
-          return new Song({
-            id: url,
-            title: name,
-            url: query,
-            duration: durationInMs,
-            durationFormatted: Utils.secondsToText(durationInSec),
-            notSeekable: true,
-          });
-        },
-        [songType.playlist]: async () => {
-          const songs = (await (data as any).all_tracks()).map((song: any) => {
-            const { id, name, durationInMs } = song;
-            return new Song({
-              id: `https://api.soundcloud.com/tracks/${id}`,
-              title: name,
-              url: query,
-              duration: durationInMs,
-              durationFormatted: Utils.secondsToText(durationInMs / 1000),
-              notSeekable: true,
-            });
-          });
-
-          return new Playlist({
-            name: name,
-            url: query,
-            ownerName: user?.name,
-            ownerUrl: user?.url,
-            songs: songs,
-            durationPlaylist: durationInMs,
-          });
-        },
-      };
-
-      return typesData[type]();
-    }
-
-    async function ytVideoSearch() {
-      let song: any;
-
-      if (query.includes("youtube.com/watch?")) {
-        song = await YouTube.getVideo(query);
-      } else {
-        const busca = await search_yt(query);
-
-        if (!busca) throw new Error("Música não encontrada");
-
-        song = busca;
-      }
-
-      const { id, url, duration, durationFormatted, title } = song;
-
-      return new Song({
-        id: id,
-        title: title,
-        url: url,
-        duration: duration,
-        durationFormatted: durationFormatted,
-      });
-    }
-
-    async function ytPlaylistSearch() {
-      const playlist = await play.playlist_info(query);
-      const songs = playlist.videos.map((song: any) => {
-        const { id, url, title, durationRaw, durationInSec } = song;
-
-        return new Song({
-          id: id,
-          title: title,
-          url: url,
-          duration: durationInSec * 1000,
-          durationFormatted: durationRaw,
-        });
-      });
-
-      const { title, channel, url } = playlist as any;
-      const durationPlaylist = songs.reduce(
-        (acc: number, song: any) => acc + song.duration,
-        0
-      );
-
-      return new Playlist({
-        name: title,
-        url: url,
-        ownerName: channel?.name,
-        ownerUrl: channel?.url,
-        songs: songs,
-        durationPlaylist: durationPlaylist,
-      });
-    }
-
-    async function spotifySearch() {
-      const infoSpotify = await getData(query);
-      const spotifyTypes: any = {
-        [songType.track]: async () => {
-          const song = infoSpotify;
-
-          const searchedSong = await DatabaseSongs.searchSong(song);
-
-          if (searchedSong) return searchedSong;
-
-          const queryStr = `${song.name} - ${
-            song?.artists?.map((a: any) => a.name).join(" ") || ""
-          }`;
-          const msc = await search_yt(queryStr);
-
-          if (!msc) throw new Error("Música não Encontrada.");
-
-          const { title, uri } = song as any;
-
-          const data = new SpotifySong({
-            id: msc.id,
-            title: title,
-            uri: uri,
-            duration: msc.duration,
-            durationFormatted: Utils.secondsToText(msc.duration / 1000),
-          });
-
-          await DatabaseSongs.addSong(data.toJSON());
-          await DatabaseSongs.sortArray();
-
-          return data;
-        },
-        [songType.playlist]: async () => {
-          const {
-            name,
-            subtitle,
-            coverArt: { extractedColors, sources },
-            id,
-            trackList,
-          } = infoSpotify as any;
-          const songsSpotify: any[] = [];
-          const songsNotInDatabase: any[] = [];
-
-          for await (const song of trackList) {
-            const searchedSong = await DatabaseSongs.searchSong(song);
-
-            if (searchedSong) {
-              songsSpotify.push(searchedSong);
-            } else {
-              const { title, subtitle, uri } = song as any;
-              const query = `${title} - ${subtitle}`;
-              const ytSong = await search_yt(query);
-
-              if (!ytSong) continue;
-
-              const data = new SpotifySong({
-                id: ytSong.id,
-                title: title,
-                uri: uri,
-                duration: ytSong.duration,
-                durationFormatted: Utils.secondsToText(ytSong.duration / 1000),
-              });
-
-              songsSpotify.push(data);
-              songsNotInDatabase.push(data.toJSON());
-            }
-          }
-
-          const durationTotal = songsSpotify.reduce(
-            (acc, song) => acc + song.duration,
-            0
-          );
-
-          if (songsNotInDatabase.length) {
-            await DatabaseSongs.addSong(songsNotInDatabase);
-            await DatabaseSongs.sortArray();
-          }
-
-          return new SpotifyPlaylist({
-            name: name,
-            ownerName: subtitle,
-            id: id,
-            color: extractedColors?.colorDark?.hex,
-            songs: songsSpotify,
-            durationPlaylist: durationTotal,
-            images: sources[0]?.url,
-          });
-        },
-      };
-
-      return spotifyTypes[infoSpotify.type]();
-    }
-
-    async function search_yt(msc: string) {
-      const result = await YouTube.search(msc, { limit: 2 });
-      return result[0];
-    }
-  }
-
   getComponentsMessage() {
-    const { player } = this as any;
-    const statusPlay = [
-      AudioPlayerStatus.Playing,
-      AudioPlayerStatus.Buffering,
-    ].includes(player._state.status);
+    const statusPlay = true;
     const statusLoop = this.getStatusLoop();
+
     const components = {
       type: 1,
       components: [
@@ -719,7 +456,7 @@ export default class Queue {
           emoji: "📝",
         },
       ],
-    } as any;
+    } as const;
     const components2 = {
       type: 1,
       components: [
@@ -754,7 +491,7 @@ export default class Queue {
           emoji: "🔀",
         },
       ],
-    } as any;
+    } as const;
 
     return [components, components2];
   }

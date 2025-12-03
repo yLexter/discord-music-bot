@@ -16,7 +16,7 @@ export default class BackCommand extends Command {
   }
 
   async execute(client: Client, interaction: ChatInputCommandInteraction) {
-    const queue = client.queues.get(interaction.guild!.id) as Queue | undefined;
+    const queue = client.queues.get(interaction.guild!.id);
     if (!queue) return super.notQueue(interaction);
     await queue.playBackMusic();
   }
