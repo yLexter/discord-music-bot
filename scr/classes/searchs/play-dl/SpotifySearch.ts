@@ -1,5 +1,5 @@
-import { SpotifyPlaylist, SpotifySong } from "../Songs";
-import { Utils } from "../Utils";
+import { SpotifyPlaylist, SpotifySong } from "../../Songs";
+import { Utils } from "../../Utils";
 import { YoutubeSearch } from "./YoutubeSearch";
 
 const unfetch = require("isomorphic-unfetch");

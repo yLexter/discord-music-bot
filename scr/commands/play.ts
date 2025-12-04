@@ -4,7 +4,7 @@ import Command from "../classes/Command";
 import Client from "../classes/Client";
 import Queue from "../classes/Queue";
 import { songType } from "../enums";
-import { SearchSongs } from "../classes/searchs/SearchSong";
+import { searcherWrapper } from "../classes/searchs/SearchWrapper";
 
 export default class PlayCommand extends Command {
   constructor() {
@@ -34,8 +34,7 @@ export default class PlayCommand extends Command {
         client.queues.get(interaction.guild.id) ||
         new Queue(client, interaction);
 
-      const searcher = new SearchSongs();
-      const data = await searcher.search(query);
+      const data = await searcherWrapper.search(query);
 
       const handlers: Record<string, () => Promise<void>> = {
         [songType.track]: async () => queue.play(data, interaction),
@@ -63,7 +62,7 @@ export default class PlayCommand extends Command {
           queue.play(songs);
         },
       };
-      await handlers[(data as any).type]();
+      await handlers[data.type]();
     } catch (e) {
       await interaction
         .editReply({ content: `Error => ${(e as Error).message}` })

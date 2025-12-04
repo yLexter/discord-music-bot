@@ -16,7 +16,7 @@
     "@discordjs/rest": "^1.0.1",
     "@discordjs/voice": "^0.11.0",
     "@iamtraction/google-translate": "^1.1.2",
-    "discord.js": "^14.14.1",
+    "discord.js": "^14.25.1",
     "dotenv": "^16.0.1",
     "ffmpeg": "^0.0.4",
     "fluent-ffmpeg": "^2.1.2",

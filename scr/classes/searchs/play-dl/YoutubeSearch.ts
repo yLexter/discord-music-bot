@@ -1,4 +1,4 @@
-import { Playlist, Song } from "../Songs";
+import { Playlist, Song } from "../../Songs";
 import YouTubeLib from "youtube-sr";
 
 const YouTube = (YouTubeLib as any).default || (YouTubeLib as any);
@@ -64,9 +64,9 @@ export class YoutubeSearch {
       });
     });
 
-    const { title, channel, url } = playlist as any;
+    const { title, channel, url } = playlist;
     const durationPlaylist = songs.reduce(
-      (acc: number, song: any) => acc + song.duration,
+      (acc: number, song: Song) => acc + song.duration,
       0
     );
 

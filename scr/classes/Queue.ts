@@ -30,7 +30,6 @@ import { PlayerSong } from "./player/Player";
 
 export default class Queue {
   player: PlayerSong;
-
   member: GuildMember | APIInteractionGuildMember;
   guild: Guild;
   user: User;
@@ -56,7 +55,7 @@ export default class Queue {
     this.guild = interaction.guild;
     this.user = interaction.user;
     this.channel = interaction.channel;
-    this.message = interaction;
+    this.message = null;
     this.player = new PlayerSong();
     this.setQueue();
   }
@@ -72,7 +71,7 @@ export default class Queue {
     const maximumProgessBar = 10;
     const progressBar = [...Array(maximumProgessBar)].map(() => "▬");
     const emoji = "🔵";
-    const isPaused = this.player.state.status === AudioPlayerStatus.Paused;
+    const isPaused = this.player.status === AudioPlayerStatus.Paused;
     const song = this.songs[0];
     const songTime = isPaused
       ? Math.floor((this.songPlay || 0) / 1000)
@@ -211,18 +210,13 @@ export default class Queue {
   }
 
   stop(): void {
-    const connection = this.getConnection();
     const embed = new EmbedBuilder().setColor("Red").setAuthor({
       name: " | ⏹️ Stopped Queue.",
       iconURL: this.client.user.displayAvatarURL(),
     });
 
     this.client.queues.delete(this.guild.id);
-
-    try {
-      connection.destroy();
-    } catch {}
-
+    this.player.stop();
     this.message?.edit?.({ components: [] }).catch(() => {});
     this.channel?.send({ embeds: [embed] }).catch(() => {});
   }
@@ -247,7 +241,7 @@ export default class Queue {
 
     const firstMusic = songs.shift();
 
-    // songs.shuffle();
+    this.songs = this.songs.sort(() => Math.random() - 0.5);
     songs.unshift(firstMusic);
   }
 
@@ -269,16 +263,6 @@ export default class Queue {
   resetLoops(): void {
     this.loopingSong = false;
     this.loopingQueue = false;
-  }
-
-  joinChannelVoice(): VoiceConnection {
-    const { member, guild } = this;
-
-    return joinVoiceChannel({
-      channelId: member.voice.channel.id,
-      guildId: guild.id,
-      adapterCreator: guild.voiceAdapterCreator,
-    });
   }
 
   play(song: Song | Song[], interaction?: CommandInteraction) {
@@ -330,10 +314,6 @@ export default class Queue {
     return this.statusLoop % 3;
   }
 
-  getConnection(): VoiceConnection | undefined {
-    return getVoiceConnection(this.guild.id);
-  }
-
   getDurationTotal(): number {
     return this.songs.reduce((acc, song) => acc + song.duration, 0) / 1000;
   }
@@ -365,7 +345,6 @@ export default class Queue {
   }
 
   async sendMessageError(error: string): Promise<void> {
-    const { client } = this;
     const song = this.songs[0];
 
     if (!song) return;
@@ -373,8 +352,8 @@ export default class Queue {
     const embed = new EmbedBuilder()
       .setColor("Red")
       .setAuthor({
-        name: `| ${client.user.tag}`,
-        iconURL: client.user.displayAvatarURL(),
+        name: `| ${this.client.user.tag}`,
+        iconURL: this.client.user.displayAvatarURL(),
       })
       .setTitle("Erro na Reprodução")
       .setDescription(
@@ -392,16 +371,17 @@ export default class Queue {
       this.songPlay = Date.now();
 
       if (interaction) {
-        this.message = await interaction.editReply({
+        await interaction.editReply({
           embeds: [this.embedSong(song)],
-          // components: this.getComponentsMessage(),
-          // fetchReply: true,
+          components: this.getComponentsMessage(),
         });
+
+        this.message = await interaction.fetchReply();
         return;
       }
 
-      if (this.message && (this.message as any).edit)
-        (this.message as any).edit({ components: [] }).catch(() => {});
+      if (this.message && this.message.edit)
+        this.message.edit({ components: [] }).catch(() => {});
 
       this.message = await this.sendMessage(song);
     } catch (e: any) {

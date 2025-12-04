@@ -1,8 +1,9 @@
+import { Searcher } from "../interface";
 import { SoundCloudSearch } from "./SoundcloudSearch";
 import { SpotifySearch } from "./SpotifySearch";
 import { YoutubeSearch } from "./YoutubeSearch";
 
-export class SearchSongs {
+export class SearchSongsPlaydl implements Searcher {
   private youtubeSearch: YoutubeSearch;
   private soundcloudSearch: SoundCloudSearch;
   private spotifySearch: SpotifySearch;

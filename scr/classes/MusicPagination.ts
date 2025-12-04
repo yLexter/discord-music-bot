@@ -173,8 +173,8 @@ export class SongsPagination {
       buttonFunctions[i.customId]();
     });
 
-    // collector.on("end", () =>
-    //  interaction.editReply({ components: [] }).catch(() => {})
-    // );
+    collector.on("end", () =>
+      interaction.editReply({ components: [] }).catch(() => {})
+    );
   }
 }

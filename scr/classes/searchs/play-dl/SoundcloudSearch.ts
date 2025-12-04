@@ -1,5 +1,5 @@
-import { Playlist, Song } from "../Songs";
-import { Utils } from "../Utils";
+import { Playlist, Song } from "../../Songs";
+import { Utils } from "../../Utils";
 
 const play = require("play-dl");
 
