@@ -8,6 +8,12 @@ export default {
   name: Events.InteractionCreate,
   once: false,
   execute: async (client: CustomClient, interaction: Interaction) => {
+    console.log(
+      interaction.isButton(),
+      interaction.isCommand(),
+      interaction.isAutocomplete()
+    );
+
     if (interaction.isButton())
       return new CustomButtonInteraction(client, interaction).main();
     if (interaction.isCommand())

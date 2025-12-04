@@ -6,15 +6,12 @@ export default (client: CustomClient) => {
   const files = fs.readdirSync(path.join(__dirname, "../events"));
 
   for (const eventFile of files) {
-    const evento = require(`../events/${eventFile}`);
+    const evento = require(`../events/${eventFile}`).default;
+
     if (evento.once) {
-      client.once(evento.name, (...args: any[]) =>
-        evento.execute(client, ...args)
-      );
+      client.once(evento.name, (...args) => evento.execute(client, ...args));
     } else {
-      client.on(evento.name, (...args: any[]) =>
-        evento.execute(client, ...args)
-      );
+      client.on(evento.name, (...args) => evento.execute(client, ...args));
     }
   }
 

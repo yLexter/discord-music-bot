@@ -1,13 +1,12 @@
 import { Events } from "discord.js";
 import play from "play-dl";
+import CustomClient from "../classes/Client";
 
 export default {
   name: Events.ClientReady,
   once: true,
-  execute: async (client: any) => {
+  execute: async (client: CustomClient) => {
     console.log(`O bot ${client.user.username} está online`);
-
-    client.user.setActivity(`De Darius Obviamente.`);
 
     play
       .getFreeClientID()

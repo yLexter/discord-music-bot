@@ -4,6 +4,8 @@ import Command from "../classes/Command";
 import Queue from "../classes/Queue";
 import { songType } from "../enums";
 import CustomClient from "../classes/Client";
+import { searcherWrapper } from "../classes/searchs/SearchWrapper";
+import { Playlist, Song } from "../classes/Songs";
 
 export default class PromisseCommand extends Command {
   constructor() {
@@ -91,10 +93,14 @@ export default class PromisseCommand extends Command {
           });
           return;
         }
-        const songData = await Queue.songSearch(query);
-        if ((songData as any).type !== songType.track)
+
+        const songData = await searcherWrapper.search(query);
+
+        if (songData instanceof Playlist)
           throw new Error("O promisse aceita apenas tracks.");
+
         queue.firstMusic(songData);
+
         await this.sendResult(
           interaction,
           songData.title,

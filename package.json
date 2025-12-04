@@ -5,8 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
-    "start": "npm run build && node dist/index.js"
+    "start": "tsx watch index.ts"
   },
   "keywords": [],
   "author": "yLexter#1687",
@@ -20,12 +19,15 @@
     "dotenv": "^16.0.1",
     "ffmpeg": "^0.0.4",
     "fluent-ffmpeg": "^2.1.2",
+    "isomorphic-unfetch": "^4.0.2",
     "lyrics-finder": "^21.7.0",
-    "moongose": "^1.0.0",
     "play-dl": "^1.9.7",
-    "spotify-url-info": "^3.1.10",
+    "spotify-url-info": "^3.2.18",
     "tweetnacl": "^1.0.3",
     "typescript": "^5.9.3",
     "youtube-sr": "^4.3.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
   }
 }

@@ -1,13 +1,12 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import Client from "./scr/classes/Client";
 import loadCommands from "./scr/structures/commands";
 import loadEvents from "./scr/structures/events";
+import CustomClient from "./scr/classes/Client";
 
-const client = new Client();
+const client = new CustomClient();
 
-// Load structures
 loadCommands(client);
 loadEvents(client);
 

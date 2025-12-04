@@ -18,11 +18,11 @@ export default class ResumeCommand extends Command {
 
   async execute(client: Client, interaction: ChatInputCommandInteraction) {
     const queue = client.queues.get(interaction.guild!.id) as Queue | undefined;
+
     if (!queue) return super.notQueue(interaction);
-    if (!queue.player) throw new Error("Player não está inicializado.");
-    const status = queue.player.state.status;
-    if (status === "playing") throw new Error("A música já está tocando.");
-    queue.player.unpause();
+
+    queue.player.resume();
+
     await interaction.reply({ content: "Música retomada." });
   }
 }

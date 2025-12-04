@@ -9,7 +9,7 @@ import Command from "../classes/Command";
 export default (client: CustomClient): void => {
   const {
     serverInfo: { clientId },
-  } = config as any;
+  } = config;
 
   const commandsDir = path.join(__dirname, "../commands");
   const files = fs
@@ -30,7 +30,13 @@ export default (client: CustomClient): void => {
     client.commands.set(commandInstance.name, commandInstance);
   }
 
-  const rest = new REST({ version: "9" }).setToken(process.env.TOKEN!);
+  const token = process.env.TOKEN;
+
+  if (!token) {
+    throw new Error("Bot token not provided in environment variables.");
+  }
+
+  const rest = new REST({ version: "9" }).setToken(token);
 
   (async () => {
     try {
